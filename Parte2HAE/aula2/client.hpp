@@ -6,9 +6,13 @@
 typedef uint8_t BYTE;
 
 class CLIENT: public DEVICE {
-    const string PORT="3490"; // the port client will be connecting to
-    int sockfd, numbytes;
-    //...
+    const string PORT="3490"; 
+    int sockfd, numbytes;  
+	char buf[MAXDATASIZE];
+	struct addrinfo hints, *servinfo, *p;
+	int rv;
+	char s[INET6_ADDRSTRLEN];
+    
     static void *get_in_addr(struct sockaddr *sa);
 
 public:
@@ -18,6 +22,6 @@ public:
 
     void sendBytes(int nBytesToSend, BYTE *buf);
     void receiveBytes(int nBytesToReceive, BYTE *buf);
-}; //Fim de CLIENT
+};
 
 #endif
