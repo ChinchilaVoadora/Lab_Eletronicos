@@ -1,7 +1,7 @@
+#include <unistd.h>
+
 #ifndef SERVER_HPP
 #define SERVER_HPP
-
-#include <unistd.h>
 
 typedef uint8_t BYTE;
 
@@ -13,7 +13,7 @@ class SERVER {
     socklen_t sin_size;
     struct sigaction sa;
     int yes=1;
-    char s[INET6_ADDRSTRLEN];
+    //char s[INET6_ADDRSTRLEN];
     int rv;
     
     struct addrinfo hints, *servinfo, *p;
