@@ -4,7 +4,6 @@
 //(... outras classes como SERVER e CLIENT e funções ...)
 typedef uint8_t BYTE;
 
-
 #include <unistd.h>
 
 #include <stdio.h>
@@ -23,26 +22,57 @@ typedef uint8_t BYTE;
 
 typedef uint8_t BYTE;
 
-class SERVER {
+class DEVICE {
+public:
     const string PORT="3490"; // the port users will be connecting to
-    const int BACKLOG=1; // how many pending connections queue will hold
     
-    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
 	char buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
-	struct sockaddr_storage their_addr; // connector's address information
-	socklen_t sin_size;
+
 	struct sigaction sa;
-	int yes=1;
 	char s[INET6_ADDRSTRLEN];
 	int rv;
 
+    
     static void *get_in_addr(struct sockaddr *sa) {
         if (sa->sa_family == AF_INET) {
             return &(((struct sockaddr_in*)sa)->sin_addr);
         }
         return &(((struct sockaddr_in6*)sa)->sin6_addr);
     }
+
+    virtual void sendBytes(int nBytesToSend, BYTE *buf2) = 0;
+    virtual void receiveBytes(int nBytesToReceive, BYTE *buf2) = 0;
+
+    void sendUint(uint32_t m) {
+        unsigned char* bytes = reinterpret_cast<unsigned char*>(&m);
+        this->sendBytes(4, bytes);
+    }
+
+    void receiveUint(uint32_t &m) {
+        unsigned char* bytes = reinterpret_cast<unsigned char*>(&m);
+        this->receiveBytes(4, bytes);
+    }
+
+    /*void sendUint(uint32_t m);
+    void sendVb(const vector<BYTE>& vb);
+    void sendImg(const Mat_<COR>& img);
+    void sendImgComp(const Mat_<COR>& img);
+    void receiveUint(uint32_t& m);
+    void receiveVb(vector<BYTE>& vb);
+    void receiveImg(Mat_<COR>& img);
+    void receiveImgComp(Mat_<COR> &img); */
+};
+
+class SERVER: public DEVICE {
+    const int BACKLOG=1; // how many pending connections queue will hold
+    
+    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+
+    struct sockaddr_storage their_addr; // connector's address information
+	socklen_t sin_size;
+
+    int yes=1;
 
 public:
     SERVER() {
@@ -108,54 +138,38 @@ public:
 	}
     void sendBytes(int nBytesToSend, BYTE *buf2) {
         const char* buf = reinterpret_cast<const char*>(buf2);
-        int remaining = nBytesToSend;
-        while (remaining > 0) {
-            int result = send(this->new_fd, buf2, strlen(buf)+1, 0);
+        int sent = 0;
+        while (sent < nBytesToSend) {
+            int result = send(this->new_fd, buf2, nBytesToSend - sent, 0);
+
+            sent += result;
+            //std::cout << "Enviando " << result << " bytes" << endl;
+            //std::cout << "Faltam " << remaining << " bytes" << endl << endl;
 
             if (result == -1)
                 perror("send");
-
-            else if (result < remaining) {
-                remaining -= result;
-
-                // deslocar o ponteiro de result bytes
-                buf += result;
-            }
         }
 	}
     void receiveBytes(int nBytesToReceive, BYTE *buf2) {
         const char* buf = reinterpret_cast<const char*>(buf2);
-        int remaining = nBytesToReceive;
-        while (remaining > 0) {
-            int result = recv(new_fd, buf2, MAXDATASIZE, 0);
+        int received = 0;
+        while (received < nBytesToReceive > 0) {
+            int result = recv(new_fd, buf2, nBytesToReceive - received, 0);
+
+            received += result;
+
+            //if (result > 0) std::cout << "Recebidos " << result << " butes\n";
 
             if (result == -1)
                 perror("recv");
 
-            else if (result < remaining) {
-                remaining -= result;
-
-                // deslocar o ponteiro de result bytes
-                buf += result;
-            }
         }
 	}
 }; //Fim de SERVER
 
-class CLIENT {
-    const string PORT="3490"; 
+class CLIENT: public DEVICE {
     int sockfd, numbytes;  
-	char buf[MAXDATASIZE];
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-	char s[INET6_ADDRSTRLEN];
     
-    static void *get_in_addr(struct sockaddr *sa) {
-        if (sa->sa_family == AF_INET) {
-            return &(((struct sockaddr_in*)sa)->sin_addr);
-        }
-        return &(((struct sockaddr_in6*)sa)->sin6_addr);
-    }
 
 public:
     CLIENT(string endereco) {
@@ -197,36 +211,29 @@ public:
 
     void sendBytes(int nBytesToSend, BYTE *buf2) {
         const char* buf = reinterpret_cast<const char*>(buf2);
-        int remaining = nBytesToSend;
-        while (remaining > 0) {
-            int result = send(this->sockfd, buf2, strlen(buf)+1, 0);
+        int sent = 0;
+        while (sent < nBytesToSend) {
+            int result = send(this->sockfd, buf2 + sent, nBytesToSend - sent, 0);
 
+            //std::cout << "Enviando " << result << " bytes" << endl;
+            //std::cout << "Faltam " << remaining << " bytes" << endl << endl;
+
+            sent += result;
             if (result == -1)
                 perror("send");
-
-            else if (result < remaining) {
-                remaining -= result;
-
-                // deslocar o ponteiro de result bytes
-                buf += result;
-            }
         }
     }
     void receiveBytes(int nBytesToReceive, BYTE *buf2) {
         const char* buf = reinterpret_cast<const char*>(buf2);
-        int remaining = nBytesToReceive;
-        while (remaining > 0) {
-            int result = recv(this->sockfd, buf2, MAXDATASIZE, 0);
+        int received = 0;
+        while (received < nBytesToReceive) {
+            int result = recv(this->sockfd, buf2 + received, nBytesToReceive - received, 0);
+            
+            //std::cout << "Recebendo " << remaining << " bytes" << endl;
 
+            received += result;
             if (result == -1)
                 perror("recv");
-
-            else if (result < remaining) {
-                remaining -= result;
-
-                // deslocar o ponteiro de result bytes
-                buf += result;
-            }
         }
     }
 };

@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
     
     CLIENT client(argv[1]);
     
-    const int n=100000;
+    const int n=10000;
     BYTE buf[n];
     
     client.receiveBytes(n,buf);
