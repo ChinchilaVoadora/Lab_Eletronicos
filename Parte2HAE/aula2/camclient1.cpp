@@ -7,21 +7,23 @@ int main(int argc, char *argv[]) {
 
     CLIENT client(argv[1]);
 
-    Mat_<COR> img;
+    Mat_<COR> img(480, 640);
 
-
+	namedWindow("janela2");
     while (true) {
         client.receiveImg(img);
-        imshow("janela", img);
-
-        uint32_t m = 0;
-        if (img.total() != 76800)
-            m = 1;
-
-        client.sendUint(m);
-
+            
+        imshow("janela2", img);
+        
         int ch=(signed char)(waitKey(30)); // E necessario (signed char)
+
 		if (ch>=0)  
             break;
+
+        uint32_t m = 0;
+        //if (img.total() != 76800)
+        //    m = 1;
+
+        client.sendUint(m);
     }
 }

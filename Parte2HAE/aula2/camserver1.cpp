@@ -15,16 +15,15 @@ int main(void) {
     	exit(1);
 	}
 	
-	w.set(CAP_PROP_FRAME_WIDTH,320);
-	w.set(CAP_PROP_FRAME_HEIGHT,240);
+	w.set(CAP_PROP_FRAME_WIDTH,640);
+	w.set(CAP_PROP_FRAME_HEIGHT,480);
 	w.set(CAP_PROP_FPS, 15);
 	
-	Mat_<Vec3b> a;
 	namedWindow("janela");
 	while (true)  {
-		w >> a;  //  get  a  new  frame  from  camera
-		imshow("janela",a);
-        server.sendImg(a);
+		w >> img;  //  get  a  new  frame  from  camera
+		imshow("janela",img);
+        server.sendImg(img);
 		int ch=(signed char)(waitKey(30)); // E necessario (signed char)
 
 		if (ch>=0)  

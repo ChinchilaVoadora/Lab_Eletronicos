@@ -45,15 +45,17 @@ public:
     virtual void receiveBytes(int nBytesToReceive, BYTE *buf2) = 0;
 
     void sendUint(uint32_t m) {
-        static uint32_t m2 = htonl(m);
+        uint32_t m2 = htonl(m);
 
         this->sendBytes(4, (BYTE*)&m2);
+        std::cout << "Enviou " << m2 << endl;
     }
 
     void receiveUint(uint32_t &m) {
-        static uint32_t m2;
+        uint32_t m2;
 
         this->receiveBytes(4, (BYTE*)&m2);
+        std::cout << "Recebeu " << m2 << endl;
 
         m = ntohl(m2);
     }
@@ -77,19 +79,23 @@ public:
         if (img.isContinuous() == false)
             perror("Not continuous image");
 
+        std::cout << "Rows: " << img.rows << "  Cols: " << img.cols << endl;
         this->sendUint(img.rows); this->sendUint(img.cols);
 
         this->sendBytes(3*img.total(), img.data);
+        std::cout << "Enviou " << img.total()*3 << " bytes\n";
     }
 
     void receiveImg(Mat_<COR>& img) {
         uint32_t rows, cols;
 
         this->receiveUint(rows); this->receiveUint(cols);
+        std::cout << "Rows: " << rows << "  Cols: " << cols << endl;
+        
+        img.create(rows, cols);
 
-        Mat_<COR> image(rows, cols);
-
-        this->receiveBytes(3*image.total(), image.data);
+        this->receiveBytes(3*rows*cols, img.data);
+        std::cout << "Recebeu " << 3*rows*cols << " bytes\n";
     }
 
     /*void sendUint(uint32_t m);
