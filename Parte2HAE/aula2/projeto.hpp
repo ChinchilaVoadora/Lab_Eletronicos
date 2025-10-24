@@ -98,7 +98,7 @@ public:
         std::cout << "Recebeu " << 3*rows*cols << " bytes\n";
     }
 
-    void sendImgCom(const Mat_<COR> &img) {
+    void sendImgComp(const Mat_<COR> &img) {
         vector<BYTE> vb;
         vector<int> param{CV_IMWRITE_JPEG_QUALITY,80};
         imencode(".jpg",img,vb,param);

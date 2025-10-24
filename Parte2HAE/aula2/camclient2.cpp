@@ -26,4 +26,7 @@ int main(int argc, char *argv[]) {
 
         client.sendUint(m);
     }
+
+    uint32_t m = 1;
+    client.sendUint(m);
 }

@@ -19,15 +19,11 @@ int main(void) {
 	w.set(CAP_PROP_FRAME_HEIGHT,480);
 	w.set(CAP_PROP_FPS, 15);
 	
-	namedWindow("janela");
+	//namedWindow("janela");
 	while (true)  {
 		w >> img;  //  get  a  new  frame  from  camera
-		imshow("janela",img);
+		//imshow("janela",img);
         server.sendImgComp(img);
-		int ch=(signed char)(waitKey(30)); // E necessario (signed char)
-
-		if (ch>=0)  
-            break;
 
         uint32_t error;
         server.receiveUint(error);
