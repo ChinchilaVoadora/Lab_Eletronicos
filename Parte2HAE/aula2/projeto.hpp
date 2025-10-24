@@ -98,14 +98,20 @@ public:
         std::cout << "Recebeu " << 3*rows*cols << " bytes\n";
     }
 
-    /*void sendUint(uint32_t m);
-    void sendVb(const vector<BYTE>& vb);
-    void sendImg(const Mat_<COR>& img);
-    void sendImgComp(const Mat_<COR>& img);
-    void receiveUint(uint32_t& m);
-    void receiveVb(vector<BYTE>& vb);
-    void receiveImg(Mat_<COR>& img);
-    void receiveImgComp(Mat_<COR> &img); */
+    void sendImgCom(const Mat_<COR> &img) {
+        vector<BYTE> vb;
+        vector<int> param{CV_IMWRITE_JPEG_QUALITY,80};
+        imencode(".jpg",img,vb,param);
+
+        this->sendVb(vb);
+    }
+
+    void receiveImgComp(Mat_<COR>& img) {
+        vector<BYTE> vb;
+        this->receiveVb(vb);
+        // Função para receber o vetor de bytes vb
+        img=imdecode(vb,1); // Numero 1 indica imagem colorida
+    }
 };
 
 class SERVER: public DEVICE {
