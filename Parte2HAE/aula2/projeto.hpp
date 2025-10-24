@@ -60,12 +60,37 @@ public:
 
 
     void sendVb(const vector<BYTE>& vb) {
+        this->sendUint(vb.size());
         this->sendBytes(vb.size(), (BYTE*) vb.data());
     }
 
     void receiveVb(vector<BYTE>& vb) {
-        this->receiveBytes(vb.size(), (BYTE*) vb.data());
+        uint32_t m;
+        this->receiveUint(m);
+
+        vb.resize(m);
+
+        this->receiveBytes(m, (BYTE*) vb.data());
     }   
+
+    void sendImg(const Mat_<COR>& img) {
+        if (img.isContinuous() == false)
+            perror("Not continuous image");
+
+        this->sendUint(img.rows); this->sendUint(img.cols);
+
+        this->sendBytes(3*img.total(), img.data);
+    }
+
+    void receiveImg(Mat_<COR>& img) {
+        uint32_t rows, cols;
+
+        this->receiveUint(rows); this->receiveUint(cols);
+
+        Mat_<COR> image(rows, cols);
+
+        this->receiveBytes(3*image.total(), image.data);
+    }
 
     /*void sendUint(uint32_t m);
     void sendVb(const vector<BYTE>& vb);
