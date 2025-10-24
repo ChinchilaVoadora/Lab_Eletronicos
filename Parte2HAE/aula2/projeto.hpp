@@ -45,7 +45,7 @@ public:
     virtual void receiveBytes(int nBytesToReceive, BYTE *buf2) = 0;
 
     void sendUint(uint32_t m) {
-        static uint32_t m2 = htnol(m);
+        static uint32_t m2 = htonl(m);
 
         this->sendBytes(4, (BYTE*)&m2);
     }
@@ -55,7 +55,7 @@ public:
 
         this->receiveBytes(4, (BYTE*)&m2);
 
-        m = nthol(m2);
+        m = ntohl(m2);
     }
 
     /*void sendUint(uint32_t m);
