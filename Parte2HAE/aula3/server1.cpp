@@ -7,7 +7,7 @@ int main(void) {
     
     server.waitConnection();
     
-    Mat_<COR> img(480, 640);
+    Mat_<COR> img(240, 320);
     
     VideoCapture w(0);
 	if (!w.isOpened()) { 
@@ -15,8 +15,8 @@ int main(void) {
     	exit(1);
 	}
 	
-	w.set(CAP_PROP_FRAME_WIDTH,640);
-	w.set(CAP_PROP_FRAME_HEIGHT,480);
+	w.set(CAP_PROP_FRAME_WIDTH,320);
+	w.set(CAP_PROP_FRAME_HEIGHT,240);
 	w.set(CAP_PROP_FPS, 15);
 	
 	//namedWindow("janela");
