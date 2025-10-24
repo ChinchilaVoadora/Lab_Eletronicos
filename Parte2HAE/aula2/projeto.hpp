@@ -136,29 +136,25 @@ public:
 		printf("server: got connection from %s\n", s);
 		close(sockfd); // doesn't need the listener anymore
 	}
-    void sendBytes(int nBytesToSend, BYTE *buf2) {
-        const char* buf = reinterpret_cast<const char*>(buf2);
+    void sendBytes(int nBytesToSend, BYTE *buf) {
         int sent = 0;
         while (sent < nBytesToSend) {
-            int result = send(this->new_fd, buf2, nBytesToSend - sent, 0);
+            int result = send(this->new_fd, buf + sent, nBytesToSend - sent, 0);
 
             sent += result;
-            //std::cout << "Enviando " << result << " bytes" << endl;
-            //std::cout << "Faltam " << remaining << " bytes" << endl << endl;
+            std::cout << "Enviando " << result << " bytes" << endl;
+            std::cout << "Faltam " << nBytesToSend - sent << " bytes" << endl << endl;
 
             if (result == -1)
                 perror("send");
         }
 	}
-    void receiveBytes(int nBytesToReceive, BYTE *buf2) {
-        const char* buf = reinterpret_cast<const char*>(buf2);
+    void receiveBytes(int nBytesToReceive, BYTE *buf) {
         int received = 0;
         while (received < nBytesToReceive > 0) {
-            int result = recv(new_fd, buf2, nBytesToReceive - received, 0);
+            int result = recv(new_fd, buf + received, nBytesToReceive - received, 0);
 
             received += result;
-
-            //if (result > 0) std::cout << "Recebidos " << result << " butes\n";
 
             if (result == -1)
                 perror("recv");
@@ -209,11 +205,10 @@ public:
         close(this->sockfd);
     }
 
-    void sendBytes(int nBytesToSend, BYTE *buf2) {
-        const char* buf = reinterpret_cast<const char*>(buf2);
+    void sendBytes(int nBytesToSend, BYTE *buf) {
         int sent = 0;
         while (sent < nBytesToSend) {
-            int result = send(this->sockfd, buf2 + sent, nBytesToSend - sent, 0);
+            int result = send(this->sockfd, buf + sent, nBytesToSend - sent, 0);
 
             //std::cout << "Enviando " << result << " bytes" << endl;
             //std::cout << "Faltam " << remaining << " bytes" << endl << endl;
@@ -223,11 +218,10 @@ public:
                 perror("send");
         }
     }
-    void receiveBytes(int nBytesToReceive, BYTE *buf2) {
-        const char* buf = reinterpret_cast<const char*>(buf2);
+    void receiveBytes(int nBytesToReceive, BYTE *buf) {
         int received = 0;
         while (received < nBytesToReceive) {
-            int result = recv(this->sockfd, buf2 + received, nBytesToReceive - received, 0);
+            int result = recv(this->sockfd, buf + received, nBytesToReceive - received, 0);
             
             //std::cout << "Recebendo " << remaining << " bytes" << endl;
 
