@@ -45,13 +45,17 @@ public:
     virtual void receiveBytes(int nBytesToReceive, BYTE *buf2) = 0;
 
     void sendUint(uint32_t m) {
-        unsigned char* bytes = reinterpret_cast<unsigned char*>(&m);
-        this->sendBytes(4, bytes);
+        static uint32_t m2 = htnol(m);
+
+        this->sendBytes(4, (BYTE*)&m2);
     }
 
     void receiveUint(uint32_t &m) {
-        unsigned char* bytes = reinterpret_cast<unsigned char*>(&m);
-        this->receiveBytes(4, bytes);
+        static uint32_t m2;
+
+        this->receiveBytes(4, (BYTE*)&m2);
+
+        m = nthol(m2);
     }
 
     /*void sendUint(uint32_t m);
@@ -142,8 +146,8 @@ public:
             int result = send(this->new_fd, buf + sent, nBytesToSend - sent, 0);
 
             sent += result;
-            std::cout << "Enviando " << result << " bytes" << endl;
-            std::cout << "Faltam " << nBytesToSend - sent << " bytes" << endl << endl;
+            //std::cout << "Enviando " << result << " bytes" << endl;
+            //std::cout << "Faltam " << nBytesToSend - sent << " bytes" << endl << endl;
 
             if (result == -1)
                 perror("send");

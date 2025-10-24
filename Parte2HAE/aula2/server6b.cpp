@@ -7,7 +7,7 @@ int main(void) {
     SERVER server;
     server.waitConnection();
     
-    const int n=10000;
+    const int n=100000;
     
     BYTE buf[n];
     memset(buf,111,n); //insere 111 em n=100000 bytes a partir do endereço buf
