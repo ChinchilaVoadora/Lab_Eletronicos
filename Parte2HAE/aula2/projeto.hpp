@@ -58,6 +58,15 @@ public:
         m = ntohl(m2);
     }
 
+
+    void sendVb(const vector<BYTE>& vb) {
+        this->sendBytes(vb.size(), (BYTE*) vb.data());
+    }
+
+    void receiveVb(vector<BYTE>& vb) {
+        this->receiveBytes(vb.size(), (BYTE*) vb.data());
+    }   
+
     /*void sendUint(uint32_t m);
     void sendVb(const vector<BYTE>& vb);
     void sendImg(const Mat_<COR>& img);
@@ -245,5 +254,15 @@ bool testaBytes(BYTE* buf, BYTE b, int n) {
     for (unsigned i=0; i<n; i++)
         if (buf[i]!=b) { igual=false; break; }
         
+    return igual;
+}
+
+bool testaVb(const vector<BYTE> vb, BYTE b) {
+    //Testa se todos os bytes de vb possuem valor b
+    bool igual=true;
+    
+    for (unsigned i=0; i<vb.size(); i++)
+        if (vb[i]!=b) { igual=false; break; }
+    
     return igual;
 }
