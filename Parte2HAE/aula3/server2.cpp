@@ -36,39 +36,52 @@ int main(void) {
         uint32_t state;
         server.receiveUint(state);
         int strong = 90;
-        switch state {
+        float left_wheel_factor = 1;
+        float right_wheel_factor = 1;
+        switch (state) {
+            case 0:
+                softPwmWrite(0, 0);  softPwmWrite(1, 0);     
+                softPwmWrite(2, 0); softPwmWrite(3,  0);
+                break;
             case 1:
-                softPwmWrite(0, 0);  softPwmWrite(1, strong/2);     
-                softPwmWrite(2, strong); softPwmWrite(3,  0);
+                softPwmWrite(0, 0);  softPwmWrite(1, strong*left_wheel_factor);     
+                softPwmWrite(2, strong/2*right_wheel_factor); softPwmWrite(3,  0);
                 break;
             case 2:
-                softPwmWrite(0, 0);  softPwmWrite(1, strong);     
-                softPwmWrite(2, strong); softPwmWrite(3,  0);
+                softPwmWrite(0, 0);  softPwmWrite(1, strong*left_wheel_factor);     
+                softPwmWrite(2, strong*right_wheel_factor); softPwmWrite(3,  0);
                 break;
             case 3:
-                softPwmWrite(0, 0);  softPwmWrite(1, strong);     
-                softPwmWrite(2, strong/2); softPwmWrite(3,  0);
+                softPwmWrite(0, 0);  softPwmWrite(1, strong/2*left_wheel_factor);     
+                softPwmWrite(2, strong*right_wheel_factor); softPwmWrite(3,  0);
                 break;
             case 4:
-                oftPwmWrite(0, strong);  softPwmWrite(1, 0);     
-                softPwmWrite(2, strong); softPwmWrite(3,  0);
+                softPwmWrite(0, 0);  softPwmWrite(1, strong*left_wheel_factor);     
+                softPwmWrite(2, 0); softPwmWrite(3,  strong*right_wheel_factor);
                 break;
             case 5:
-                
+                softPwmWrite(0, strong);  softPwmWrite(1, strong);     
+                softPwmWrite(2, strong); softPwmWrite(3,  strong);
                 break;
             case 6:
-                softPwmWrite(0, strong); softPwmWrite(1, 0);     
-                softPwmWrite(2, strong);  softPwmWrite(3, 0);
+                softPwmWrite(0, strong*left_wheel_factor); softPwmWrite(1, 0);     
+                softPwmWrite(2, strong*right_wheel_factor);  softPwmWrite(3, 0);
                 break;
             case 7:
-
+                softPwmWrite(0, strong*left_wheel_factor);  softPwmWrite(1, 0);     
+                softPwmWrite(2, 0); softPwmWrite(3,  strong/2*right_wheel_factor);
                 break;
             case 8:
-                softPwmWrite(0, strong); softPwmWrite(1, 0);     
-                softPwmWrite(2, 0);  softPwmWrite(3, strong);
+                softPwmWrite(0, strong*left_wheel_factor); softPwmWrite(1, 0);     
+                softPwmWrite(2, 0);  softPwmWrite(3, strong*right_wheel_factor);
                 break;
             case 9:
-
+                softPwmWrite(0, strong/2*left_wheel_factor);  softPwmWrite(1, 0);     
+                softPwmWrite(2, 0); softPwmWrite(3,  strong*right_wheel_factor);
+                break;
+            default:
+                softPwmWrite(0, strong);  softPwmWrite(1, strong);     
+                softPwmWrite(2, strong); softPwmWrite(3,  strong);
                 break;
         }
 
