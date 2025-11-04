@@ -70,7 +70,7 @@ void drawHud(Mat_<COR>& controle) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc!=2) erro("client6 servidorIpAddr\n");
+    if (argc!=4) erro("client6 servidorIpAddr\n");
 
     CLIENT client(argv[1]);
 
@@ -81,6 +81,13 @@ int main(int argc, char *argv[]) {
     Mat_<COR> camera(height, width);
 
     Mat_<COR> janela(height, width*2);
+
+    VideoWriter vo;
+    if (argv[3][0] == 'c')
+        vo = VideoWriter(argv[2], CV_FOURCC('X','V','I','D'), 15, Size(width,height));
+    else if (argv[3][0] == 't') 
+        vo = VideoWriter(argv[2], CV_FOURCC('X','V','I','D'), 15, Size(2*width,height));
+    
 
 
 	namedWindow("janela");
@@ -103,7 +110,6 @@ int main(int argc, char *argv[]) {
         }
         drawHud(controle);
 
-
         client.receiveImgComp(camera);
 
         uint32_t m = estado;
@@ -111,6 +117,11 @@ int main(int argc, char *argv[]) {
 
 
         hconcat(controle, camera, janela);
+
+        if (argv[3][0] == 'c')
+            vo << camera;
+        else if (argv[3][0] == 't') 
+            vo << janela;
 
         imshow("janela",janela);
     }

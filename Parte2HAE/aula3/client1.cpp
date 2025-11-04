@@ -82,6 +82,11 @@ int main(int argc, char *argv[]) {
 
     Mat_<COR> janela(height, width*2);
 
+    VideoWriter vo;
+    if (argv[3][0] == 'c')
+        vo = VideoWriter(argv[2], CV_FOURCC('X','V','I','D'), 15, Size(width,height));
+    else if (argv[3][0] == 't') 
+        vo = VideoWriter(argv[2], CV_FOURCC('X','V','I','D'), 15, Size(2*width,height));
 
 	namedWindow("janela");
     //resizeWindow("janela",2*imagem.cols,2*imagem.rows);
@@ -111,6 +116,11 @@ int main(int argc, char *argv[]) {
 
 
         hconcat(controle, camera, janela);
+
+        if (argv[3][0] == 'c')
+            vo << camera;
+        else if (argv[3][0] == 't') 
+            vo << janela;
 
         imshow("janela",janela);
     }
