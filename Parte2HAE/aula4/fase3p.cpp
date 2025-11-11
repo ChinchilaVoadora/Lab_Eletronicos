@@ -73,7 +73,7 @@ void drawHud(Mat_<COR>& controle) {
 int main(int argc, char *argv[]) {
     if (argc!=4) erro("client6 servidorIpAddr\n");
 
-    //CLIENT client(argv[1]);
+    CLIENT client(argv[1]);
 
     Mat_<COR> controle(height, width);
     COR cinza(128,128,128);
@@ -131,19 +131,19 @@ int main(int argc, char *argv[]) {
         }
         drawHud(controle);
 
-        //client.receiveImgComp(camera);
-        camera = imread("uou.jpg", 1);
-        resize(camera, camera, Size(width, height), 1, 1, INTER_NEAREST);
+        client.receiveImgComp(camera);
+        //camera = imread("uou.jpg", 1);
+        //resize(camera, camera, Size(width, height), 1, 1, INTER_NEAREST);
         if (camera.empty()) {
             std::cerr << "Erro: imagem não carregada!" << std::endl;
             return -1;
         }
-        //resize(camera, camera, Size(width, height), 1, 1, INTER_NEAREST);
+
         Mat_<FLT> img_flt;
         converte(camera, img_flt);
 
-        float treshold_ncc = 0.5;
-        float treshold_cc = 0.1;
+        float treshold_ncc = 0.001;
+        float treshold_cc = 0.001;
 
         int location_size = 10; // Nao procurar por outros picos com menos dessa distancia de um pico
 
@@ -188,63 +188,70 @@ int main(int argc, char *argv[]) {
             while (continue_searching) {
                 minMaxLoc(R_cc, &minVal_cc, &maxVal_cc, &minLoc_cc, &maxLoc_cc);
                 continue_searching = false;
-                for (int k = 0; k < store; ++k) {
-                    //std::cout << "CC k: " << k << " size: " << values_cc.size() << endl;
-                    #pragma omp critical
-                    if (maxVal_cc > values_cc[k]) {
-                        /*std::cout << "Escala " << scale << " Achou maior posiçao em " << 
-                        maxLoc_cc.x << " " << maxLoc_cc.y << " sendo a " << k << " posicao" <<endl;
-                        std::cout << "Achou " << maxVal_cc << " antes era " << values_cc[k] << endl << endl;
-                        */
-                        values_cc.pop_back();
-                        values_cc.insert(values_cc.begin() + k, maxVal_cc);
 
-                        points_cc.pop_back();
-                        points_cc.insert(points_cc.begin() + k, maxLoc_cc);
+                if (maxVal_cc > treshold_cc) {
+                    for (int k = 0; k < store; ++k) {
+                        //std::cout << "CC k: " << k << " size: " << values_cc.size() << endl;
+                        #pragma omp critical
+                        if (maxVal_cc > values_cc[k]) {
+                            /*std::cout << "Escala " << scale << " Achou maior posiçao em " << 
+                            maxLoc_cc.x << " " << maxLoc_cc.y << " sendo a " << k << " posicao" <<endl;
+                            std::cout << "Achou " << maxVal_cc << " antes era " << values_cc[k] << endl << endl;
+                            */
+                            values_cc.pop_back();
+                            values_cc.insert(values_cc.begin() + k, maxVal_cc);
 
-                        scales_cc.pop_back();
-                        scales_cc.insert(scales_cc.begin() + k, scale);
+                            points_cc.pop_back();
+                            points_cc.insert(points_cc.begin() + k, maxLoc_cc);
 
-                        circle(R_cc, maxLoc_cc, 1, Scalar(-1), location_size*5);
-                        /*for (int i = maxLoc_cc.x - location_size; i < maxLoc_cc.x + location_size; ++i)
-                            for (int j = maxLoc_cc.y - location_size; j < maxLoc_cc.y + location_size; ++i)
-                                if (i > 0 && i < height && j > 0 && j < w)    
-                                    R_cc[j][i] = 0;
-                        */
-                        //imshow("janela", R_cc);
-                        //waitKey(0);
-                        //circle(camera, maxLoc_cc, 10, Scalar(255, 0, 0), location_size);
+                            scales_cc.pop_back();
+                            scales_cc.insert(scales_cc.begin() + k, this_scale);
 
-                        continue_searching = true;
-                        k = store + 1;
-                    } 
+                            circle(R_cc, maxLoc_cc, 1, Scalar(-1), location_size*5);
+                            /*for (int i = maxLoc_cc.x - location_size; i < maxLoc_cc.x + location_size; ++i)
+                                for (int j = maxLoc_cc.y - location_size; j < maxLoc_cc.y + location_size; ++i)
+                                    if (i > 0 && i < height && j > 0 && j < w)    
+                                        R_cc[j][i] = 0;
+                            */
+                            //imshow("janela", R_cc);
+                            //waitKey(0);
+                            //circle(camera, maxLoc_cc, 10, Scalar(255, 0, 0), location_size);
+
+                            continue_searching = true;
+                            k = store + 1;
+                        } 
+                    }
                 }
             }
-
+            
+            
             bool continue_searching2 = true;
             while (continue_searching2) {
                 minMaxLoc(R_ncc, &minVal_ncc, &maxVal_ncc, &minLoc_ncc, &maxLoc_ncc);
-                
+                treshold_ncc == maxVal_ncc * 0.95;
                 continue_searching2 = false;
-                for (int k = 0; k < store; ++k) {
-                    //std::cout << "NCC k: " << k << " size: " << values_ncc.size() << endl;
-                    #pragma omp critical
-                    if (maxVal_ncc > values_ncc[k]) {
-                        values_ncc.pop_back();
-                        values_ncc.insert(values_ncc.begin() + k, maxVal_ncc);
+                
+                if (maxVal_ncc >= treshold_ncc) {
+                    for (int k = 0; k < store; ++k) {
+                        //std::cout << "NCC k: " << k << " size: " << values_ncc.size() << endl;
+                        #pragma omp critical
+                        if (maxVal_ncc > values_ncc[k]) {
+                            values_ncc.pop_back();
+                            values_ncc.insert(values_ncc.begin() + k, maxVal_ncc);
 
-                        points_ncc.pop_back();
-                        points_ncc.insert(points_ncc.begin() + k, maxLoc_ncc);
+                            points_ncc.pop_back();
+                            points_ncc.insert(points_ncc.begin() + k, maxLoc_ncc);
 
-                        scales_ncc.pop_back();
-                        scales_ncc.insert(scales_ncc.begin() + k, scale);
+                            scales_ncc.pop_back();
+                            scales_ncc.insert(scales_ncc.begin() + k, this_scale);
 
-                        circle(R_ncc, maxLoc_ncc, 1, Scalar(-1), location_size*5);
-                        //circle(camera, maxLoc_ncc, 10, Scalar(0, 255, 0), location_size);
+                            circle(R_ncc, maxLoc_ncc, 1, Scalar(-1), location_size*5);
+                            //circle(camera, maxLoc_ncc, 10, Scalar(0, 255, 0), location_size);
 
-                        continue_searching2 = true;
-                        k = store + 1;
-                    } 
+                            continue_searching2 = true;
+                            k = store + 1;
+                        } 
+                    }
                 }
             }
             /*imshow("janela", img_flt/3+R_cc*50);
@@ -273,7 +280,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        for (int i = 0; i < store; i++) {
+        /*for (int i = 0; i < store; i++) {
             Point center = points_cc[i];
             rectangle(camera, Point(center.x - scales_cc[i]/2, center.y - scales_cc[i]/2), 
                                     Point(center.x + scales_cc[i]/2, center.y + scales_cc[i]/2), 
@@ -283,12 +290,12 @@ int main(int argc, char *argv[]) {
             rectangle(camera, Point(center.x - scales_ncc[i]/2, center.y - scales_ncc[i]/2), 
                                     Point(center.x + scales_ncc[i]/2, center.y + scales_ncc[i]/2), 
                                     Scalar(0, 255, 0), 1, 1);
-        }
+        }*/
 
         uint32_t m = estado;
-        //client.sendUint(m);
+        client.sendUint(m);
 
-        //hconcat(controle, camera, janela);
+        hconcat(controle, camera, janela);
 
         if (argv[3][0] == 'c')
             vo << camera;
@@ -296,12 +303,12 @@ int main(int argc, char *argv[]) {
             vo << janela;
 
 
-        imshow("janela", camera);
+        imshow("janela", janela);
         t2 = timeSinceEpoch();
         std::cout << "FPS: " << 1/(t2-t1) << endl;
     }
 
     // Parar
     uint32_t m = 1000;
-    //client.sendUint(m);
+    client.sendUint(m);
 }
