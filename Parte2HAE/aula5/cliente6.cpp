@@ -14,6 +14,8 @@ using namespace tensorflow;*/
 
 using namespace ml;
 
+#define mnist_size 14
+
 int linhas = 3;
 int colunas = 3;
 
@@ -36,7 +38,7 @@ COR preto(0, 0, 0);
 COR branco(255, 255, 255);
 COR laranja(0, 100, 255);
 
-Mat_<FLT> croppedNumber(14, 14);
+Mat_<FLT> croppedNumber(mnist_size, mnist_size);
 
 void on_mouse(int event, int c, int l, int flags, void* userdata) {
     if (event==EVENT_LBUTTONDOWN) {
@@ -167,15 +169,17 @@ void drawInfo(Mat_<COR>& info, float fps, float m, int label, int indice, MNIST 
     putText(info, to_string(int(m)), Point(145, 25), 1, 1, branco);
 
     putText(info, "IMG/MATCH", Point(165, 25), 1, 1, cinza);
-    Mat_<FLT> match = mnist.ax.row(indice).reshape(1, 14);
-    for (int i = 0; i < 14; i++) {
-        for (int j = 0; j < 14; j++) {
-            if (croppedNumber[i][j] > 0.5) 
+    Mat_<FLT> match = mnist.ax.row(indice).reshape(1, mnist_size);
+    float tresh_match = mean(match)[0];
+    float tresh_number = mean(croppedNumber)[0];
+    for (int i = 0; i < mnist_size; i++) {
+        for (int j = 0; j < mnist_size; j++) {
+            if (croppedNumber[i][j] > tresh_number) 
                 circle(info, Point(265+j, 12+i), 1, branco);
             else
                 circle(info, Point(265+j, 12+i), 1, preto);
 
-            if (match[i][j] > 0.5) 
+            if (match[i][j] > tresh_match) 
                 circle(info, Point(285+j, 12+i), 1, branco);
             else
                 circle(info, Point(285+j, 12+i), 1, preto);
@@ -199,11 +203,12 @@ void turnRight(int count) {
 }
 
 void readNumber(flann::Index &ind, MNIST &mnist, Mat_<COR> &number_cor, Mat_<FLT> &number, float& value, int& predictedLabel, int &indice) {
+    if (number_cor.empty()) return;
     resize(number_cor, number_cor, Size(32, 32), INTER_AREA);
     converte(number_cor, number);
     
     number = number - 0.05;
-    float cutoff = 0.5;
+    float cutoff = mean(number)[0];
     for(int i = 0; i < number.rows; ++i) {
         for (int j = 0; j < number.cols; ++j) {
             if (number[i][j] > cutoff)
@@ -241,20 +246,30 @@ void readNumber(flann::Index &ind, MNIST &mnist, Mat_<COR> &number_cor, Mat_<FLT
         }
     }
 
-    if (height > width) {
-        int new_width = height;
-        coord_cols = coord_cols - (height - width) / 2 + 1;
-        if (coord_cols < 0) coord_cols = 0;
-        number = number(Rect(coord_cols, coord_rows, new_width, height));
-    }
-    else {
-        int new_height = width;
-        coord_rows = coord_rows - (width - height) / 2 + 1;
-        if (coord_rows < 0) coord_rows = 0;
-        number = number(Rect(coord_cols, coord_rows, width, new_height));    
+    if (width != 0 && height != 0 && coord_cols != 1000 && coord_rows != 1000) {
+        if (height > width) {
+            int new_width = height;
+            coord_cols = coord_cols - (height - width) / 2 + 1;
+            if (coord_cols < 0) coord_cols = 0;
+            if (coord_rows < 0) coord_rows = 0;
+            if (new_width >= number.cols - coord_cols) new_width = number.cols - coord_cols;
+            if (height >= number.rows - coord_rows) height = number.rows - coord_rows;
+
+            number = number(Rect(coord_cols, coord_rows, new_width, height));
+        }
+        else {
+            int new_height = width;
+            coord_rows = coord_rows - (width - height) / 2 + 1;
+            if (coord_cols < 0) coord_cols = 0;
+            if (coord_rows < 0) coord_rows = 0;
+            if (width > number.cols - coord_cols) width = number.cols - coord_cols;
+            if (new_height > number.rows - coord_rows) new_height = number.rows - coord_rows;
+
+            number = number(Rect(coord_cols, coord_rows, width, new_height));    
+        }
     }
 
-    resize(number, number, Size(14, 14));
+    resize(number, number, Size(mnist_size, mnist_size));
     croppedNumber = number;
     Mat flat = number.reshape(1, 1);
     std::vector<int> indices(1);      // nearest neighbor index
@@ -349,7 +364,7 @@ void findTemplate(Mat_<FLT>& img_flt, Mat_<FLT>& T_cc, Mat_<FLT>& T_ncc, vector<
 int main(int argc, char *argv[]) {
     if (argc!=4) erro("client6 servidorIpAddr\n");
 
-    CLIENT client(argv[1]);
+    //CLIENT client(argv[1]);
 
     Mat_<COR> camera(height, width);
     Mat_<COR> cameraCopy(height, width);
@@ -370,7 +385,7 @@ int main(int argc, char *argv[]) {
     T_cc = somaAbsDois(dcReject(T_cc));
     T_ncc = somaAbsDois(dcReject(T_ncc, 128.0/255.0));
 
-    MNIST mnist(14, true, true);
+    MNIST mnist(mnist_size, true, true);
     mnist.le("/home/rafitcha20/cekeikon5/tiny_dnn/data");
    
     flann::Index ind(mnist.ax,flann::KDTreeIndexParams(4));
@@ -449,8 +464,8 @@ int main(int argc, char *argv[]) {
             infoMode = !infoMode;
         }
 
-        client.receiveImgComp(camera);
-        //camera = imread("exemplo.png", 1);
+        //client.receiveImgComp(camera);
+        camera = imread("exemplo.png", 1);
         resize(camera, camera, Size(width, height), 1, 1, INTER_NEAREST);
         if (camera.empty()) {
             std::cerr << "Erro: imagem nao carregada!" << std::endl;
@@ -499,7 +514,7 @@ int main(int argc, char *argv[]) {
         Mat_<COR> number_cor;
         Mat_<FLT> number;
         if (center.x != 0 && center.y != 0) {
-            number_cor = camera(Rect((center.x - scale*0.3/2), (center.y - scale*0.3/2), scale*0.35, scale*0.35));
+            number_cor = camera(Rect(int(center.x - scale*0.3/2), int(center.y - scale*0.3/2), int(scale*0.35), int(scale*0.35)));
             //number_cor = imread("zero.png");
             
             readNumber(ind, mnist, number_cor, number, value, label, indice);
@@ -534,7 +549,7 @@ int main(int argc, char *argv[]) {
         m = estado;
         if (locked) m = 0;
         if (turning) m = estadoTurning;
-        client.sendUint(m);
+        //client.sendUint(m);
 
         hconcat(controle, cameraCopy, janela1);
         hconcat(config, info, janela2);
@@ -556,10 +571,9 @@ int main(int argc, char *argv[]) {
         imshow("janela", janelaFinal);
         //waitKey(0);
         t2 = timeSinceEpoch();
-        //std::cout << "FPS: " << 1/(t2-t1) << endl;
     }
 
     // Parar
     m = 1000;
-    client.sendUint(m);
+    //client.sendUint(m);
 }
